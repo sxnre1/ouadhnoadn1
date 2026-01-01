@@ -11,8 +11,10 @@ CLIENT_ID = CLIENT_ID
 CLIENT_SECRET = CLIENT_SECRET
 BOT_TOKEN = BOT_TOKEN
 
+DB_PATH = '/tmp/database.db'
+
 def start_db():
-      con = sqlite3.connect("database.db")
+      con = sqlite3.connect(DB_PATH)
       cur = con.cursor()
       return con, cur
 
@@ -60,7 +62,10 @@ def joi(link):
       try:
           con, cur = start_db()
           cur.execute("SELECT * FROM guilds WHERE link == ?", (link,))
-          gid = cur.fetchone()[0]
+          row = cur.fetchone()
+          if not row:
+              return render_template("fail.html")
+          gid = row[0]
           con.close()
           ginfo = getguild(gid)
           r = getme(gid)
@@ -83,7 +88,3 @@ def callback():
           return render_template("success.html")
       except:
           return render_template("fail.html")
-
-if __name__ == "__main__":
-      port = int(os.environ.get("PORT", 5000))
-      app.run(host="0.0.0.0", port=port)
