@@ -2,18 +2,17 @@ import os
 import requests
 from flask import Flask, request, render_template
 import sqlite3
+from setting import *
 
 app = Flask(__name__)
 
 API_ENDPOINT = 'https://discord.com/api/v9'
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-DB_PATH = '/tmp/database.db'
+CLIENT_ID = CLIENT_ID
+CLIENT_SECRET = CLIENT_SECRET
+BOT_TOKEN = BOT_TOKEN
 
 def start_db():
-      con = sqlite3.connect(DB_PATH)
+      con = sqlite3.connect("database.db")
       cur = con.cursor()
       return con, cur
 
@@ -61,10 +60,7 @@ def joi(link):
       try:
           con, cur = start_db()
           cur.execute("SELECT * FROM guilds WHERE link == ?", (link,))
-          row = cur.fetchone()
-          if not row:
-              return render_template("fail.html")
-          gid = row[0]
+          gid = cur.fetchone()[0]
           con.close()
           ginfo = getguild(gid)
           r = getme(gid)
@@ -87,3 +83,7 @@ def callback():
           return render_template("success.html")
       except:
           return render_template("fail.html")
+
+if __name__ == "__main__":
+      port = int(os.environ.get("PORT", 5000))
+      app.run(host="0.0.0.0", port=port)
